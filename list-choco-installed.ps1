@@ -1,0 +1,1 @@
+choco list -lo > choco-installed.txt
