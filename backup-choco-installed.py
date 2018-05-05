@@ -22,15 +22,22 @@ cmd_script = "choco-reinstall.ps1"
 
 print("parsing file")
 #read the output_file in
-with open(output_file, "r") as f:
-
+with open(output_file, "r") as infile, open(cmd_script, "w") as outfile:
+    cmd = ["choco", "install", "-y"]
 # parse file:
-    for line in f:
+    for line in infile:
         # if not line.startswith("Chocolatey") and not line[0].isdigit():
-        search = re.search("^(?!Chocolatey.*)(.*)\s\d.*", line)
+        search = re.search("^(?!Chocolatey.*)(.*?)\s\d.*", line)
+        search = re.match("^(?!Chocolatey.*)(.*?)\s\d.*", line)
         if search:
-            print(search)
+            # print(search)
             # print(search.group(0))
+            # print(search.groups())
+            print(search.group(1))
+            cmd.append(search.group(1))
+    # cmd = " ".join(cmd, search.group(1))
+    print(cmd)
+            # for 
     # remove 1st line "Chocolatey v0.10.8"
     # remove version from each line 7zip.commandline 16.02.0.20170209
     # remove last line 70 packages installed.
