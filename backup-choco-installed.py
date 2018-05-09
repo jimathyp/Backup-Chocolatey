@@ -4,18 +4,21 @@
 # choco list -lo > choco-installed.txt
 # powershell_script = "choco list -lo > {filename}"
 
-output_list = "choco-installed.txt"
 
 import subprocess
 import os
 import re
 import datetime
-
 import jputils
 
 
 
 
+
+
+
+
+output_list = "choco-installed.txt"
 output_file = "choco-installed.txt"
 output_file = os.path.join(os.getcwd(), output_file)
 print(output_file)
