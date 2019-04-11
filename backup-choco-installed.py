@@ -51,6 +51,19 @@ CONSOLE_HANDLER.setFormatter(FORMATTER)
 LOGGER.addHandler(CONSOLE_HANDLER)
 LOGGER.setLevel(logging.DEBUG)
 
+def write_default_config(config_file):
+  LOGGER.info(f'Entering method')
+  config = configparser.ConfigParser()
+  config['config'] = {
+    'outputdirectory' : 'C:\config\choc-installed',
+    'outputfilename' : '',
+    'outputscriptname' : '' 
+  }
+  with open(config_file, 'w') as configfile:
+    config.write(configfile)
+  LOGGER.info(f'Exiting method')
+
+
 def get_config(config_file):
   LOGGER.info(f'Entering method')
   LOGGER.debug(f'config_file = {config_file}')
@@ -58,22 +71,26 @@ def get_config(config_file):
 
   # check for config file
   if not os.path.isfile(config_file):
+    write_default_config(DEFAULT_CONFIG_FILE)
+    # might error eg. if directory path doesn't exist, isn't robust
+    
+  if not os.path.isfile(config_file):
     LOGGER.error('FileNotFound')
     raise FileNotFoundError('The default config file was not found at path: "{}"'.format(config_file))
 
   config.read(config_file)
 
   output_folder = DEFAULT_OUTPUT_FOLDER
-  if config['Config']['OutputDirectory']:
-    output_folder = config['Config']['OutputDirectory']
+  if config['config']['outputdirectory']:
+    output_folder = config['config']['outputdirectory']
 
   output_file = DEFAULT_OUTPUT_FILE
-  if config['Config']['OutputFileName']:
-    output_file = config['Config']['OutputFile']
+  if config['config']['outputfilename']:
+    output_file = config['config']['outputfile']
 
   reinstall_script_file = DEFAULT_REINSTALL_SCRIPT
-  if config['Config']['OutputScriptName']:
-    reinstall_script_file = config['Config']['OutputScriptName']
+  if config['config']['outputscriptname']:
+    reinstall_script_file = config['config']['outputscriptname']
   LOGGER.debug(f'output_folder = {output_folder}')
   LOGGER.debug(f'output_file = {output_file}')
   LOGGER.debug(f'reinstall_script_file = {reinstall_script_file}')
@@ -89,17 +106,19 @@ def generate_installed_versions_file(output_file):
   LOGGER.info(f'Exiting')
 
 @click.command()
-@click.option('-v', '--verbose', help='Change the log level to logging.DEBUG (10)', is_flag=True)
+@click.option('-v', '--verbose', help='Change the log level to logging.DEBUG (10)', count=True)
 @click.option('-q', '--quiet', help='Change the log level to logging.NOTSET (0)', is_flag=True)
 def backup_choco_installed_main(verbose, quiet): 
+  # find better way for logging
 
-  # meh
-  if verbose:
-    log_level = logging.DEBUG
+  if verbose == 1:
+      log_level = logging.INFO
+  elif verbose >= 2:
+      log_level = logging.DEBUG
   elif quiet:
-    log_level = logging.NOTSET
+    log_level = 0 #logging.NOTSET
   else:
-    log_level = logging.INFO
+    log_level = 60
 
   LOGGER.setLevel(log_level)
   LOGGER.info('Entering method')
@@ -125,7 +144,8 @@ def backup_choco_installed_main(verbose, quiet):
           if search:
               cmd.append(search.group(capture_group))
       cmd = ' '.join(cmd)
-      LOGGER.info('Powershell command to reinstall all packages:\n{}'.format(cmd))
+      if log_level:
+        print('Powershell command to reinstall all packages:\n{}'.format(cmd))
       LOGGER.debug(f'Writing Powershell command to file {cmd_script}')
       outfile.write(cmd)
   LOGGER.info('Exiting')
